@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import api from "../lib/api";
 import { Send, Mic, MicOff, Volume2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { speakText, hasVoiceFor } from "../lib/tts";
 
 const LANGS = [
   { code: "en", label: "English" },
@@ -54,14 +55,13 @@ export default function Chat() {
   };
 
   const speak = (txt) => {
-    try {
-      const u = new SpeechSynthesisUtterance(txt);
-      const langMap = { en: "en-IN", hi: "hi-IN", ta: "ta-IN", te: "te-IN", bn: "bn-IN", mr: "mr-IN", kn: "kn-IN" };
-      u.lang = langMap[language] || "en-IN";
-      u.rate = 0.9;
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.speak(u);
-    } catch(_){}
+    const langMap = { en: "en-IN", hi: "hi-IN", ta: "ta-IN", te: "te-IN", bn: "bn-IN", mr: "mr-IN", kn: "kn-IN" };
+    const result = speakText(txt, langMap[language] || "en-IN");
+    if (result.fallback) {
+      toast.message(`No ${language.toUpperCase()} voice on this device — using ${result.voiceLang}`, { duration: 2500 });
+    } else if (!result.ok) {
+      toast.error("Speech not available on this device");
+    }
   };
 
   const startRec = async () => {
@@ -92,16 +92,23 @@ export default function Chat() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8" data-testid="chat-page">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
         <div>
           <h1 className="heading text-4xl font-black tracking-tighter flex items-center gap-2">
             <Sparkles className="w-8 h-8 text-[#F5A623]" strokeWidth={2.5}/> Sahayak
           </h1>
           <p className="text-slate-600">Your multilingual community helper</p>
         </div>
-        <select value={language} onChange={(e)=>{ setLanguage(e.target.value); setMessages([]); sessionRef.current=null; }} className="border-2 border-slate-900 rounded-lg px-3 py-2 font-bold" data-testid="chat-language">
-          {LANGS.map(l => <option key={l.code} value={l.code}>{l.label}</option>)}
-        </select>
+        <div className="flex flex-col items-end gap-1">
+          <select value={language} onChange={(e)=>{ setLanguage(e.target.value); setMessages([]); sessionRef.current=null; }} className="border-2 border-slate-900 rounded-lg px-3 py-2 font-bold" data-testid="chat-language">
+            {LANGS.map(l => <option key={l.code} value={l.code}>{l.label}</option>)}
+          </select>
+          {!hasVoiceFor(language) && language !== "en" && (
+            <span className="text-[10px] uppercase tracking-widest font-bold text-slate-500" data-testid="voice-unavailable-note">
+              Text in {language.toUpperCase()} · voice will use Hindi/English
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="civic-card flex flex-col h-[60vh]">

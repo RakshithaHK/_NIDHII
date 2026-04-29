@@ -3,6 +3,7 @@ import api from "../lib/api";
 import { Phone, PhoneCall, Mic, MicOff, ArrowLeft, Volume2, Delete } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { speakText, hasVoiceFor } from "../lib/tts";
 
 export default function IVR() {
   const nav = useNavigate();
@@ -70,13 +71,11 @@ export default function IVR() {
   };
 
   const speak = (text) => {
-    try {
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = language === "hi" ? "hi-IN" : "en-IN";
-      u.rate = 0.9;
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.speak(u);
-    } catch(_) {}
+    const langMap = { en: "en-IN", hi: "hi-IN", ta: "ta-IN", te: "te-IN", bn: "bn-IN", mr: "mr-IN", kn: "kn-IN" };
+    const r = speakText(text, langMap[language] || "en-IN");
+    if (r.fallback) {
+      toast.message(`No ${language.toUpperCase()} voice on this device — using ${r.voiceLang}`, { duration: 2200 });
+    }
   };
 
   const press = async (digit) => {
@@ -167,6 +166,11 @@ export default function IVR() {
               <option value="kn">ಕನ್ನಡ</option>
             </select>
           </div>
+          {!hasVoiceFor(language) && language !== "en" && (
+            <p className="text-[11px] uppercase tracking-widest text-white/60 font-bold mb-3" data-testid="ivr-voice-note">
+              No {language.toUpperCase()} voice on this browser · prompts will use Hindi/English fallback
+            </p>
+          )}
 
           <div className="bg-slate-900 border-2 border-white rounded-xl p-4 mb-4 min-h-16 flex items-center justify-center">
             <span className="heading text-3xl font-black tracking-widest" data-testid="phone-display">

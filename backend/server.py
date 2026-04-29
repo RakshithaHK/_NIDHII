@@ -378,6 +378,11 @@ IVR_TREE = {
     "root": {
         "prompt_en": "Welcome to Nidhii. Press 1 for water issues. 2 for electricity. 3 for waste. 4 to speak with a supervisor. 9 to record a complaint.",
         "prompt_hi": "Nidhii mein aapka swagat hai. Paani ki samasya ke liye 1 dabaayein. Bijli ke liye 2. Kachra ke liye 3. Supervisor se baat karne ke liye 4. Shikayat record karne ke liye 9.",
+        "prompt_kn": "Nidhii ge swagatha. Neeralinda samasyege 1 ottri. Vidyut samasyege 2. Kachara samasyege 3. Supervisor jote maatu aaduvudakke 4. Dooru daakhalisalu 9 ottri.",
+        "prompt_ta": "Nidhii vaarungal. Thanneer prachanai 1. Mineera 2. Kuppai 3. Supervisor ai pesa 4. Pugaarai pathivu seyya 9.",
+        "prompt_te": "Nidhii ki swagatam. Neeti samasya kosam 1 nokkandi. Vidyut kosam 2. Vyartham kosam 3. Supervisor tho matladalniki 4. Phiryadu record cheyaniki 9.",
+        "prompt_bn": "Nidhii te swagatam. Jol somossar jonno 1 chapun. Bidyut er jonno 2. Aborjona r jonno 3. Supervisor er sathe kotha bolar jonno 4. Oviyog record korte 9.",
+        "prompt_mr": "Nidhii madhe swaagat. Paaniche samasya sathi 1 dabaa. Vij sathi 2. Kachra sathi 3. Supervisor shi bolnyasathi 4. Takrari record karnyasathi 9.",
     }
 }
 
