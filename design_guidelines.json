@@ -1,0 +1,81 @@
+{
+  "theme": "light",
+  "archetype": "1_organic_earthy",
+  "mood": "grounded, hopeful, community-rooted, civic-poster, accessible",
+  "colors": {
+    "background": "#FDFBF7",
+    "surface": "#FFFFFF",
+    "primary": "#E05A3D",
+    "primary_hover": "#C84B31",
+    "secondary": "#246356",
+    "secondary_hover": "#1D4F45",
+    "accent_reward": "#F5A623",
+    "text_primary": "#0F172A",
+    "text_secondary": "#475569",
+    "border": "#0F172A",
+    "error": "#DC2626",
+    "success": "#16A34A"
+  },
+  "typography": {
+    "heading_font": "Outfit",
+    "body_font": "Manrope",
+    "scale": {
+      "h1": "text-4xl sm:text-5xl font-black tracking-tighter",
+      "h2": "text-3xl sm:text-4xl font-bold tracking-tight",
+      "h3": "text-2xl sm:text-3xl font-bold",
+      "h4": "text-xl font-bold",
+      "body": "text-base leading-relaxed",
+      "small": "text-sm font-bold tracking-widest uppercase"
+    }
+  },
+  "spacing_and_layout": {
+    "philosophy": "Generous spacing, oversized touch targets for mobile accessibility. Low-literacy friendly.",
+    "container_padding": "p-6 sm:p-8",
+    "grid_system": "Bento Grid Mode B (Control Room) adapted for mobile-first stacking. 1 col on mobile, 3-4 cols on desktop.",
+    "button_padding": "px-6 py-4 sm:px-8 sm:py-5"
+  },
+  "components": {
+    "cards": "Civic-Poster style: rounded-xl, 2px solid #0F172A border, solid flat shadow shadow-[4px_4px_0_0_#0F172A]. Background white.",
+    "buttons": "Large text, rounded-xl, 2px solid #0F172A border, solid flat shadow. Active state: translate-y-1 translate-x-1 shadow-none transition-all.",
+    "inputs": "Shadcn components heavily modified: h-14, text-lg, 2px border #0F172A, rounded-lg. Huge touch areas.",
+    "icons": "lucide-react, size w-8 h-8 to w-12 h-12 depending on context. No emojis. Thick stroke-width (2.5 to 3).",
+    "navigation": "Thick top header with solid background and bottom border (border-b-2 border-slate-900). Mobile bottom nav strongly recommended for accessibility."
+  },
+  "accessibility_and_testing": {
+    "contrast": "APCA compliant. Text is mostly near-black (#0F172A) on off-white (#FDFBF7) or high-contrast white on primary colors.",
+    "test_ids": "MANDATORY: All interactive elements must have data-testid (e.g., data-testid='report-submit-button').",
+    "motion": "Minimal. Snappy state changes. Focus rings must be 2px offset #0F172A."
+  },
+  "media": {
+    "image_urls": {
+      "hero_background": {
+        "url": "https://images.pexels.com/photos/3079978/pexels-photo-3079978.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+        "description": "Joyful Indian children gathering around a manual water pump. Use for the main landing page hero to evoke community and hope."
+      },
+      "feature_water": {
+        "url": "https://images.unsplash.com/photo-1776507178418-b9b689a1ad73?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NzZ8MHwxfHNlYXJjaHwxfHxpbmRpYW4lMjB2aWxsYWdlJTIwY29tbXVuaXR5JTIwd2F0ZXIlMjBydXJhbCUyMHNtaWxpbmd8ZW58MHx8fHwxNzc3NDY0MzM1fDA&ixlib=rb-4.1.0&q=85",
+        "description": "Villagers gathering water. Use for the 'Report Water' category or educational section."
+      },
+      "feature_community": {
+        "url": "https://images.pexels.com/photos/3920707/pexels-photo-3920707.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+        "description": "Indian woman carrying metal pots. Use to illustrate the community impact or user dashboard."
+      },
+      "rewards_coins": {
+        "url": "https://images.unsplash.com/photo-1565373676943-403a8e5c2900?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1MDZ8MHwxfHNlYXJjaHwyfHxpbmRpYW4lMjBydXBlZSUyMGNvaW5zJTIwZ3Jvd3RoJTIwcGxhbnR8ZW58MHx8fHwxNzc3NDY0MzQ2fDA&ixlib=rb-4.1.0&q=85",
+        "description": "Stack of coins for the Gamification/Rewards section."
+      }
+    },
+    "image_overlays": "If text is placed over images, use a solid color card wrapper behind the text instead of a full screen gradient overlay. This ensures maximum readability for low-literacy users."
+  },
+  "instructions_to_main_agent": [
+    "Install `lucide-react` for icons and `recharts` for the conservation charts.",
+    "Use pure Tailwind for the marketing/landing page with bold 'civic-poster' borders (border-2 border-slate-900 shadow-[4px_4px_0_0_#0F172A]).",
+    "Use Shadcn UI for the dashboard, auth, and admin views, but customize them heavily to match the civic-poster aesthetic (remove default soft shadows, replace with flat solid shadows, thicken borders).",
+    "Implement the IVR Simulator as a highly visual, interactive card mimicking a retro phone dial pad.",
+    "For the multilingual AI assistant chat panel, prioritize extremely clear typography and a prominent microphone icon button for voice input.",
+    "Ensure the application is fully responsive, prioritizing mobile-first rendering.",
+    "Add `data-testid` to EVERY button, input, tab, and actionable element.",
+    "Import and configure 'Outfit' font for headings and 'Manrope' for body text via Google Fonts in your index.html or global css. Do NOT use Inter.",
+    "Avoid typical generic SaaS aesthetics; make it feel grounded, local, and tactical."
+  ]
+}
