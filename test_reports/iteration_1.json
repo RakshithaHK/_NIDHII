@@ -1,0 +1,45 @@
+{
+  "summary": "First test iteration for Nidhii. Backend: 24/24 pytest tests passed covering auth (signup/login/me/duplicates/admin role), reports CRUD (mine/filters/admin-only/verify increments points + idempotent), stats (overview/weekly/leaderboard), chat (Gemini en+hi with session continuity), IVR start/step + invalid digit, voice transcribe (empty body 400, no auth 401), CSV exports (admin-only with proper headers). Frontend: Landing renders with Sign In/Join Nidhii, signup→dashboard works, admin login shows /admin tab with Reports CSV + Users CSV buttons + Verify/Reject buttons (3 pending, 1 verified visible), IVR page accepts dial pad 1800643444, language switcher to Hindi works, Call connects and IVR Hindi prompt is shown, pressing 1 returns 'You selected Water' prompt, Sahayak chat sends English and Hindi messages and receives properly localized AI replies persisted to DB. NewReport page has all expected testids (type-water/energy/waste/other, report-location, report-description, report-submit, voice-card, start-recording-btn). All routes Protected wrapper works.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "PATCH /api/reports/{id}/verify", "issue": "Reward bonus (+₹10 every 25th verified report) is computed using user.points % 25 == 0; however this fires whenever points becomes a multiple of 25 for ANY status transition to 'verified', including admin re-verification of an already-verified report. The verify handler already guards points-increment behind 'prev_status != verified', but the rewards check uses the post-increment points value for the first-time verification only — which is correct. However if a status flips verified→rejected→verified later, points would increment again and could re-trigger reward at 25/50/etc. Consider tracking lifetime_verified count separately to avoid double rewards on flip-flops."},
+      {"endpoint": "GET /api/stats/weekly", "issue": "Day buckets compare against ISO datetime strings as lex sort; works because timezone is consistently UTC and produced by now_iso(), but if any legacy doc has a non-ISO timestamp the bucket will silently miss it."},
+      {"endpoint": "POST /api/voice/transcribe", "issue": "Imports OpenAISpeechToText lazily; if package missing returns 500 'Whisper unavailable' (acceptable) but no health-probe endpoint surfaces this readiness."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Dashboard / Reports (any page with weekly chart)", "issues": ["Recharts console warning: 'The width(-1) and height(-1) of chart should be greater than 0'. ResponsiveContainer parent has no defined min-height/width on first paint. Add minHeight (e.g., 240px) or fixed aspect ratio to avoid the noisy warning and very brief 0-size flash."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/backend/tests/conftest.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "Optional: Wrap Recharts charts with explicit minHeight to silence width(-1)/height(-1) warnings.",
+    "Optional: Track lifetime_verified count on user to make reward accrual fully idempotent across status flip-flops."
+  ],
+  "critical_code_review_comments": [
+    "server.py is ~440 lines with auth, reports, stats, chat, voice, ivr, admin export co-located. Acceptable for MVP but should be split into routers (auth.py, reports.py, stats.py, chat.py, ivr.py, admin.py) before next feature drop.",
+    "Reward logic relies on points modulo 25 which is fragile if points ever decrement; recommend a dedicated counter.",
+    "/api/auth/me does not refresh points after verify; client must explicitly re-fetch — confirmed working in tests but ensure UI revalidates after admin verify.",
+    "JWT secret has fallback 'dev'; in prod this is set. Good.",
+    "All env vars sourced correctly; no hardcoded URLs in backend; frontend uses REACT_APP_BACKEND_URL via axios in /lib/api.js (verified).",
+    "MongoDB _id excluded everywhere via projection {_id: 0} — clean."
+  ],
+  "updated_files": [
+    "/app/backend/tests/conftest.py (created)",
+    "/app/backend/tests/backend_test.py (created)"
+  ],
+  "success_rate": {"backend": "100% (24/24)", "frontend": "100% on tested flows (landing, login admin+resident, signup, admin verify+CSV visible, IVR dial+language+prompt, Sahayak chat en+hi)"},
+  "test_credentials": "Resident asha@example.com / pass1234, Admin admin@example.com / admin123 (both pre-existing and confirmed working).",
+  "seed_data_creation": "Several TEST_-prefixed reports were created during the verify_increments_points test and one TEST_FE_ resident account during signup flow test. None were cleaned up; safe to leave as they don't affect pass/fail and are easy to filter by 'TEST_' prefix.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All 24 pytest cases pass. Use /app/backend/tests/backend_test.py as regression. Frontend route is /new-report (not /reports/new). NewReport testids are type-{water|energy|waste|other}, report-location, report-description, report-submit, voice-card, start-recording-btn. IVR virtual number is 1800643444 (use page.click for each digit testid dial-N). Chat page exposes chat-input, chat-send, chat-language, chat-messages, chat-mic. Admin page has export-reports, export-users, and verify-* / reject-* per row. Mic-dependent voice tests skip safely in headless. Recharts logs harmless width(-1) warnings — do not chase as a bug."
+}
