@@ -1,0 +1,47 @@
+{
+  "summary": "Iteration 2 — Twilio IVR webhooks, Google Sheets stub, and area-based supervisor routing. Backend: 36/36 pytest tests passing (24 prior + 12 new). New tests cover (a) /api/twilio/voice English+Hindi TwiML with <Gather action='/api/twilio/gather'>; (b) /api/twilio/gather Digits=1 returning <Record recordingStatusCallbackMethod='POST'> and Digits=0 replaying menu; (c) /api/twilio/recording-done returning <Say>+<Hangup/>; (d) /api/admin/integrations/status returns {twilio.configured:false, sheets.configured:false} and is admin/supervisor only (401 unauth, 403 resident); (e) /api/admin/sheets/sync and /api/admin/sheets/pull-status return 400 'Google Sheets not configured' when env unset; (f) area routing — POST /api/reports stores area=user.area, supervisor sup5 sees only Sector 5 reports while admin sees all (including Sector 9). Frontend: Admin page at /admin renders integrations-panel with twilio-card + sheets-card both showing 'Stub mode' chips; sheets push/pull buttons correctly hidden in stub mode. Supervisor login (sup5@example.com/sup12345) shows area-filter-chip 'AREA: SECTOR 5' and report list filtered to 5 Sector 5 reports while admin sees 11. Existing CSV exports + verify/reject buttons still functional. All iteration 1 regression tests still pass.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "POST /api/twilio/* webhooks", "issue": "All Twilio webhooks accept any caller in stub mode (TWILIO_AUTH_TOKEN empty -> validate_signature returns True). Documented behaviour, but in production once the token is set the validation will strictly enforce signatures. Recommend adding a startup log line stating 'Twilio signature validation: ENABLED/DISABLED' so operators can verify the toggle."},
+      {"endpoint": "POST /api/twilio/recording-status", "issue": "If RecordingUrl points to a host other than api.twilio.com, the .mp3 download will still be attempted with Twilio Basic auth header — harmless but worth a domain whitelist eventually."},
+      {"endpoint": "GET /api/reports/all (supervisor)", "issue": "Area match uses regex anchored with case-insensitive flag. Whitespace differences (e.g., 'Sector  5' double-space vs 'Sector 5') will silently miss. Consider .strip() on both sides or storing a normalized key."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Admin page (any role)", "issues": ["A small empty bordered placeholder appears under the page subtitle when no area chip is rendered (admin login). Likely from a stray empty container or pseudo-element. Visual only — chip element correctly hides via React conditional. Worth inspecting Admin.jsx ~line 70-74 wrapper."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/backend/tests/test_iter2.py",
+    "/app/backend/tests/conftest.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "Optional: investigate the small empty placeholder under the Admin page subtitle when area-filter-chip is not rendered (admin role).",
+    "Optional: log Twilio signature validation state at startup for operator clarity.",
+    "Optional: normalize area whitespace/casing on report write so supervisor area filter is robust to user-typed variants."
+  ],
+  "critical_code_review_comments": [
+    "server.py is now ~640 lines; integrations + voice webhooks pushed it well past the 700-line splitting threshold target. Strongly recommend extracting routers/twilio.py and routers/admin_integrations.py before iteration 3.",
+    "_twilio_validate constructs the signed URL by concatenating PUBLIC_BASE + req.url.path; if PUBLIC_BASE is set without scheme or with trailing path Twilio's RequestValidator will reject. Add a normalization helper or unit test once real creds wire up.",
+    "services/sheets.py builds the API client lazily on every call (each upsert hits _get_service which re-parses creds JSON). Once Sheets is configured this will create non-trivial overhead per insert. Consider memoizing svc on first build (module-level singleton).",
+    "reports.area is a free-text string sourced from user.area; no validation/normalization. A typo on signup ('sector 5' lowercase, 'Sector5' no space) causes silent supervisor mismatch. Suggest a small enum or canonicalization (title-case + strip).",
+    "MongoDB _id excluded everywhere via projection — clean.",
+    "All env vars properly sourced; backend uses os.environ.get/required keys; no hardcoded URLs."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter2.py (new — 12 tests)"
+  ],
+  "success_rate": {"backend": "100% (36/36 pytest)", "frontend": "100% on tested flows (admin + supervisor login, integrations panel, area chip, Sector 5 filtering, CSV export buttons)"},
+  "test_credentials": "Resident asha@example.com/pass1234, Admin admin@example.com/admin123, Supervisor sup5@example.com/sup12345 (Sector 5). Supervisor account auto-created by conftest fixture and pytest test setup if missing.",
+  "seed_data_creation": "test_iter2 created two TEST_-prefixed residents with area=Sector 5 / Sector 9 plus one report each. Existing TEST_ reports remain. No production data touched.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Use /app/backend/tests/test_iter2.py as iter2 regression. Twilio webhooks accept POST form-encoded data; signature is auto-skipped while TWILIO_AUTH_TOKEN is empty. Sheets endpoints return 400 'not configured' until BOTH GOOGLE_SHEETS_CREDS_JSON and GOOGLE_SHEETS_SPREADSHEET_ID are set. Supervisor area filter is case-insensitive exact match — store area exactly 'Sector 5' for sup5 testing. Admin page testids: integrations-panel, twilio-card, sheets-card, sheets-sync-btn (hidden in stub), sheets-pull-btn (hidden in stub), area-filter-chip (supervisor only), export-reports, export-users. Browser supervisor login needs ~3s wait after submit before /admin renders with reports.",
+  "rca of the issue": "No bugs to RCA — feature implementation works end-to-end in stub mode. Initial UI test showed 0 supervisor reports because page was probed before backend response settled; with a 3s wait the 5 Sector 5 reports render correctly (confirmed via direct API call returning 5 reports for sup5)."
+}
